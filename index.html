@@ -46,7 +46,7 @@
         <input type="file" id="excel-upload" accept=".xls,.xlsx"
           class="w-full border border-gray-300 rounded-lg text-sm px-3 py-2">
         <p class="text-xs text-gray-500 italic text-center">
-          (down file Excel Bảng chấm công, tải lên sẽ xem được lịch của tất cả mọi người)<br>
+          (down file Excel Bảng chấm công QT + NĐ, tải lên sẽ xem được lịch của tất cả mọi người)<br>
           Cách tải về file Excel tại 
           <a href="https://www.thegioididong.com/tin-tuc/cach-tai-file-google-sheets-ve-dien-thoai-1417179?gidzl=k8QiIDbrLL6tcAHBs6bKLRAPeKl5Om9L_iMXIv8-K0EedwCVbsG1LFcNfn_3OGPH-v2d7p5Pmy0jq7nSN0" 
              target="_blank" class="underline text-blue-600 hover:text-blue-800">đây</a>.
@@ -214,7 +214,7 @@
       showToast("Đã xuất PDF (hỗ trợ tiếng Việt)");
     };
 
-    // 🧩 Đọc Excel: sheet "BẢNG CHẤM CÔNG NHÂN VIÊN", ghép C+E; F+H; ...; xử lý OFF
+    // 🧩 Đọc Excel: 2 sheet "BẢNG CHẤM CÔNG QT" và "BẢNG CHẤM CÔNG NĐ"
     let employeeData = [];
     function combine(a,b){
       const v1=(a||"").toString().trim().toUpperCase();
@@ -224,42 +224,71 @@
       return combined;
     }
 
-    c("excel-upload").addEventListener("change",(e)=>{
-      const file=e.target.files[0]; if(!file)return;
-      const reader=new FileReader();
-      reader.onload=(evt)=>{
-        const data=new Uint8Array(evt.target.result);
-        const workbook=XLSX.read(data,{type:"array"});
-        const sheetName=workbook.SheetNames.find(n=>n.trim().toLowerCase()==="bảng chấm công nhân viên");
-        if(!sheetName){showToast("❌ Không tìm thấy sheet 'BẢNG CHẤM CÔNG NHÂN VIÊN'!");return;}
-        const sheet=XLSX.utils.sheet_to_json(workbook.Sheets[sheetName],{header:1});
-        if(sheet.length<2){showToast("❌ Sheet trống hoặc sai cấu trúc!");return;}
+    function parseSheet(sheet, sheetName) {
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      if (rows.length < 2) return [];
+      return rows.slice(1).map(row => ({
+        name: (row[1] || "").toString().trim(),
+        mon: combine(row[2], row[4]),
+        tue: combine(row[5], row[7]),
+        wed: combine(row[8], row[10]),
+        thu: combine(row[11], row[13]),
+        fri: combine(row[14], row[16]),
+        sat: combine(row[17], row[19]),
+        sun: combine(row[20], row[22]),
+        source: sheetName
+      })).filter(e => e.name);
+    }
 
-        employeeData=sheet.slice(1).map(row=>({
-          name:(row[1]||"").toString().trim(),
-          mon:combine(row[2],row[4]),
-          tue:combine(row[5],row[7]),
-          wed:combine(row[8],row[10]),
-          thu:combine(row[11],row[13]),
-          fri:combine(row[14],row[16]),
-          sat:combine(row[17],row[19]),
-          sun:combine(row[20],row[22])
-        })).filter(e=>e.name);
+    c("excel-upload").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-        if(employeeData.length===0){showToast("❌ Không tìm thấy nhân viên nào!");return;}
-        const sel=c("employee-select");
-        sel.innerHTML='<option value="">-- Chọn nhân viên --</option>';
-        employeeData.sort((a,b)=>a.name.localeCompare(b.name,"vi",{sensitivity:"base"}))
-          .forEach(e=>{const opt=document.createElement("option");opt.value=e.name;opt.textContent=e.name;sel.appendChild(opt);});
-        showToast("✅ Đã tải danh sách nhân viên!");
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+
+        const targetSheets = ["bảng chấm công qt", "bảng chấm công nđ"];
+        let allEmployees = [];
+
+        targetSheets.forEach(target => {
+          const sheetName = workbook.SheetNames.find(
+            n => n.trim().toLowerCase() === target
+          );
+          if (sheetName) {
+            const sheet = workbook.Sheets[sheetName];
+            const parsed = parseSheet(sheet, sheetName);
+            allEmployees = allEmployees.concat(parsed);
+          }
+        });
+
+        if (allEmployees.length === 0) {
+          showToast("❌ Không tìm thấy sheet 'BẢNG CHẤM CÔNG QT' hoặc 'BẢNG CHẤM CÔNG NĐ'!");
+          return;
+        }
+
+        employeeData = allEmployees;
+        const sel = c("employee-select");
+        sel.innerHTML = '<option value="">-- Chọn nhân viên --</option>';
+        employeeData
+          .sort((a, b) => a.name.localeCompare(b.name, "vi", { sensitivity: "base" }))
+          .forEach(e => {
+            const opt = document.createElement("option");
+            opt.value = e.name;
+            opt.textContent = e.name + " (" + e.source.toUpperCase().replace("BẢNG CHẤM CÔNG ", "") + ")";
+            sel.appendChild(opt);
+          });
+
+        showToast("✅ Đã tải dữ liệu từ QT & NĐ!");
       };
       reader.readAsArrayBuffer(file);
     });
 
-    c("employee-select").addEventListener("change",(e)=>{
-      const name=e.target.value; if(!name)return;
-      const emp=employeeData.find(x=>x.name.trim().toLowerCase()===name.trim().toLowerCase());
-      if(!emp)return showToast("Không tìm thấy nhân viên!");
+    c("employee-select").addEventListener("change", (e) => {
+      const name = e.target.value; if (!name) return;
+      const emp = employeeData.find(x => x.name.trim().toLowerCase() === name.trim().toLowerCase());
+      if (!emp) return showToast("Không tìm thấy nhân viên!");
       ["mon","tue","wed","thu","fri","sat","sun"].forEach((d,i)=>c("day"+i).value=emp[d]||"");
       showToast("📅 Đã tải lịch của "+name);
     });
