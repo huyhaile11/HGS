@@ -128,52 +128,68 @@
 
     <div class="border-t-2 border-blue-100 pt-5 mt-6 bg-white rounded-xl p-3 shadow-sm">
       <h2 class="text-lg font-bold text-green-600 text-center mb-1">
-        🤝 LÀM HỘ (Chỉ mới code cho K36)
+        🤝 LÀM HỘ
       </h2>
       <p class="text-xs text-center text-gray-500 mb-3">
-        Tìm người rảnh (không vướng ca) trong khoảng giờ bạn nhập
+        Tìm người rảnh (không vướng ca) trong khoảng giờ bạn chọn
       </p>
       
       <div class="space-y-3">
-        <div class="flex gap-2">
-            <div class="w-1/3">
-                <label class="block text-xs font-semibold mb-1">Từ giờ</label>
-                <input id="help-from" type="number" step="0.5" placeholder="11" 
-                       class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm">
-            </div>
-            <div class="w-1/3">
-                <label class="block text-xs font-semibold mb-1">Đến giờ</label>
-                <input id="help-to" type="number" step="0.5" placeholder="18.5" 
-                       class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm">
-            </div>
-            <div class="w-1/3">
-                <label class="block text-xs font-semibold mb-1">Thứ</label>
-                <select id="help-day" class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm">
-                    <option value="mon">Thứ Hai</option>
-                    <option value="tue">Thứ Ba</option>
-                    <option value="wed">Thứ Tư</option>
-                    <option value="thu">Thứ Năm</option>
-                    <option value="fri">Thứ Sáu</option>
-                    <option value="sat">Thứ Bảy</option>
-                    <option value="sun">Chủ Nhật</option>
-                </select>
-            </div>
+        <div class="flex gap-2 items-center">
+            <span class="text-xs font-bold text-gray-700 w-16">Bắt đầu:</span>
+            <select id="help-start-day" class="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm bg-gray-50">
+                <option value="mon">Thứ Hai</option>
+                <option value="tue">Thứ Ba</option>
+                <option value="wed">Thứ Tư</option>
+                <option value="thu">Thứ Năm</option>
+                <option value="fri">Thứ Sáu</option>
+                <option value="sat">Thứ Bảy</option>
+                <option value="sun">Chủ Nhật</option>
+            </select>
+            <input id="help-start-time" type="number" step="0.5" placeholder="Giờ (VD: 22)" 
+                   class="w-24 border border-gray-300 rounded px-2 py-1.5 text-sm">
         </div>
 
-        <div class="flex justify-center gap-6 py-1">
-            <label class="checkbox-wrapper">
-                <input type="checkbox" id="chk-7c" checked>
-                <span class="text-sm font-medium">Team 7C</span>
-            </label>
-            <label class="checkbox-wrapper">
-                <input type="checkbox" id="chk-pr" checked>
-                <span class="text-sm font-medium">Team PR</span>
-            </label>
+        <div class="flex gap-2 items-center">
+            <span class="text-xs font-bold text-gray-700 w-16">Kết thúc:</span>
+            <select id="help-end-day" class="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm bg-gray-50">
+                <option value="mon">Thứ Hai</option>
+                <option value="tue">Thứ Ba</option>
+                <option value="wed">Thứ Tư</option>
+                <option value="thu">Thứ Năm</option>
+                <option value="fri">Thứ Sáu</option>
+                <option value="sat">Thứ Bảy</option>
+                <option value="sun">Chủ Nhật</option>
+            </select>
+            <input id="help-end-time" type="number" step="0.5" placeholder="Giờ (VD: 6)" 
+                   class="w-24 border border-gray-300 rounded px-2 py-1.5 text-sm">
         </div>
 
-        <button id="btn-find-help" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-lg shadow">
-            🔍 Tìm người rảnh
-        </button>
+        <div class="pt-2 space-y-3">
+            <button id="btn-find-all" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg shadow border border-purple-800">
+                🔍 Tìm Tất Cả (Toàn bộ NV)
+            </button>
+            
+            <div class="relative flex py-1 items-center">
+                <div class="flex-grow border-t border-gray-300"></div>
+                <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">Hoặc tìm theo nhóm K36</span>
+                <div class="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <div class="flex justify-center gap-6 py-1">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="chk-7c" checked>
+                    <span class="text-sm font-medium">Team 7C</span>
+                </label>
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="chk-pr" checked>
+                    <span class="text-sm font-medium">Team PR</span>
+                </label>
+            </div>
+            <button id="btn-find-k36" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-lg shadow">
+                🔍 Tìm K36 (Team 7C/PR)
+            </button>
+        </div>
 
         <div id="help-result" class="hidden mt-3 bg-green-50 p-3 rounded-lg border border-green-200">
             <p class="font-bold text-green-700 text-sm mb-2 border-b border-green-200 pb-1">KẾT QUẢ:</p>
@@ -666,79 +682,126 @@ function renderFlightResults(nameRaw){
 }
 
 /* ========================================================
-   TÍNH NĂNG "LÀM HỘ" - CHECK AVAILABILITY RANGE (ĐÃ CẬP NHẬT: Dùng exactNameMatches)
+   TÍNH NĂNG "LÀM HỘ" - CHECK AVAILABILITY RANGE (ĐÃ NÂNG CẤP)
    ======================================================== */
 const team7c = ["HẢI 9", "HUY 14", "DŨNG 12", "KHẢI 2", "HUY 12", "HẰNG 14", "HUYỀN 15", "LY 5", "THU 9", "LẬP 2"];
 const teamPR = ["NGHĨA 1", "TRÂM 3", "HOÀNG 10", "HUY 11", "THÚY 7", "ANH 10", "TUẤN 11", "LY 2", "SƠN 12", "KHÁNH 2"];
+const dayMap = {mon:0, tue:1, wed:2, thu:3, fri:4, sat:5, sun:6};
+const dayKeys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
-function checkHelp(){
-    const fromH = parseFloat(c('help-from').value);
-    const toH = parseFloat(c('help-to').value);
-    const daySelect = c('help-day').value; 
-    const use7c = c('chk-7c').checked;
-    const usePR = c('chk-pr').checked;
+function checkHelp(mode){
+    // Mode: 'ALL' hoặc 'K36'
+    const startH = parseFloat(c('help-start-time').value);
+    const endH = parseFloat(c('help-end-time').value);
+    const startDay = c('help-start-day').value; 
+    const endDay = c('help-end-day').value; 
+    
     const resultList = c('help-list');
     const resultBox = c('help-result');
 
-    if(isNaN(fromH) || isNaN(toH)){
-        showToast("Vui lòng nhập giờ đầy đủ (VD: 11 và 18.5)");
-        return;
-    }
-    if(fromH >= toH){
-        showToast("Giờ kết thúc phải lớn hơn giờ bắt đầu!");
+    if(isNaN(startH) || isNaN(endH)){
+        showToast("Vui lòng nhập giờ đầy đủ!");
         return;
     }
     if(!employeeData.length){
         showToast("Chưa có dữ liệu. Vui lòng tải Excel trước.");
         return;
     }
-    if(!use7c && !usePR){
-        showToast("Chọn ít nhất 1 team!");
-        return;
+
+    // Logic xác định thời gian Tuyệt đối (Absolute Time) tính từ 0h Thứ 2
+    const startIdx = dayMap[startDay];
+    const endIdx = dayMap[endDay];
+    
+    // Quy đổi ra giờ tuyệt đối trong tuần (0 -> 168h)
+    const absStart = startIdx * 24 + startH;
+    let absEnd = endIdx * 24 + endH;
+    
+    // Nếu kết thúc nhỏ hơn bắt đầu (VD: Chủ nhật sang Thứ 2 tuần sau), bỏ qua logic tuần sau cho đơn giản
+    // hoặc báo lỗi. Ở đây giả định tìm trong 1 tuần tuyến tính Mon -> Sun.
+    // Nếu người dùng nhập Thứ 3 -> Thứ 2, coi là lỗi logic tuần.
+    if(absEnd <= absStart){
+       showToast("Thời gian kết thúc phải sau thời gian bắt đầu (trong tuần)!");
+       return;
     }
 
-    let targetNames = [];
-    if(use7c) targetNames = [...targetNames, ...team7c];
-    if(usePR) targetNames = [...targetNames, ...teamPR];
+    // Xác định danh sách nhân viên cần kiểm tra
+    let targetList = [];
+    if (mode === 'ALL') {
+        targetList = employeeData; 
+    } else {
+        const use7c = c('chk-7c').checked;
+        const usePR = c('chk-pr').checked;
+        let filterNames = [];
+        if(use7c) filterNames = [...filterNames, ...team7c];
+        if(usePR) filterNames = [...filterNames, ...teamPR];
+        
+        if(filterNames.length === 0){
+            showToast("Chọn ít nhất 1 team hoặc tìm Tất cả!");
+            return;
+        }
+        targetList = employeeData.filter(e => {
+            const normName = normalizeText(e.name);
+            return filterNames.some(teamName => exactNameMatches(normalizeText(teamName), normName));
+        });
+    }
 
     let freeList = [];
 
-    targetNames.forEach(rawName => {
-        const normSearch = normalizeText(rawName);
-        // Sử dụng exactNameMatches để so khớp chính xác tên team với bảng chấm công
-        const emp = employeeData.find(e => exactNameMatches(normSearch, normalizeText(e.name)));
-        
-        if(!emp){
-            freeList.push({name: rawName, reason: "Không có trong bảng CC"});
-            return;
-        }
-
-        const shiftStr = emp[daySelect];
-        if(!shiftStr){
-            freeList.push({name: rawName, reason: "OFF"});
-            return;
-        }
-        
-        const parts = shiftStr.split(";").map(x=>x.trim()).filter(Boolean);
+    targetList.forEach(emp => {
         let isBusy = false;
-        
-        for(let p of parts){
-            const s = parseShift(p);
-            if(s && !s.error && s.dur>0){ 
-                const overlap = Math.max(fromH, s.start) < Math.min(toH, s.end);
-                if(overlap) isBusy = true;
+        let reasons = [];
+
+        // Duyệt qua các ngày liên quan trong khoảng request (thường là startDay đến endDay)
+        for(let d = startIdx; d <= endIdx; d++){
+            const dKey = dayKeys[d];
+            const shiftStr = emp[dKey];
+            
+            if(!shiftStr || shiftStr.toUpperCase() === "OFF" || shiftStr.toUpperCase() === "OM"){
+                continue; // Ngày này OFF, check tiếp
             }
+            
+            const parts = shiftStr.split(";").map(x=>x.trim()).filter(Boolean);
+            
+            for(let p of parts){
+                const s = parseShift(p);
+                // Nếu parse được và có thời lượng
+                if(s && !s.error && s.dur > 0){ 
+                    // Quy đổi giờ ca làm việc ra giờ tuyệt đối
+                    // Lưu ý: s.start/s.end của parseShift đã xử lý việc qua đêm (VD: 22h -> 30h)
+                    // 30h nghĩa là 6h sáng hôm sau, nên cộng thẳng vào d*24 là đúng.
+                    const shiftAbsStart = d * 24 + s.start;
+                    const shiftAbsEnd = d * 24 + s.end;
+
+                    // Kiểm tra trùng: Max(StartA, StartB) < Min(EndA, EndB)
+                    const overlap = Math.max(absStart, shiftAbsStart) < Math.min(absEnd, shiftAbsEnd);
+                    
+                    if(overlap) {
+                        isBusy = true;
+                        break; 
+                    }
+                    // Lưu lại ca để hiển thị lý do nếu rảnh (nhưng ở đây chỉ cần biết rảnh hay bận)
+                    reasons.push(`${dKey.toUpperCase()}:${p}`);
+                }
+            }
+            if(isBusy) break;
         }
 
         if(!isBusy){
-            freeList.push({name: rawName, reason: shiftStr});
+            // Nếu rảnh, hiển thị lý do là các ca làm việc trong những ngày đó (để biết họ làm ca gì mà lại rảnh giờ này)
+            // Nếu không có ca nào (OFF cả đợt) thì ghi OFF
+            const reasonStr = reasons.length ? reasons.join(", ") : "OFF/Trống";
+            freeList.push({name: emp.name, reason: reasonStr});
         }
     });
+
+    // Sắp xếp tên A-Z
+    freeList.sort((a,b) => a.name.localeCompare(b.name));
 
     resultList.innerHTML = "";
     if(freeList.length === 0){
         resultList.innerHTML = "<li class='text-red-600 font-semibold'>Không có ai rảnh trong khoảng này!</li>";
     } else {
+        resultList.innerHTML = `<li class='text-blue-600 font-bold mb-2'>Tìm thấy: ${freeList.length} người</li>`;
         freeList.forEach(item => {
             const li = document.createElement("li");
             li.innerHTML = `<span class="font-bold text-gray-800">${item.name}</span> <span class="text-xs text-gray-500">(${item.reason})</span>`;
@@ -748,7 +811,8 @@ function checkHelp(){
     resultBox.classList.remove("hidden");
 }
 
-c("btn-find-help").addEventListener("click", checkHelp);
+c("btn-find-all").addEventListener("click", () => checkHelp('ALL'));
+c("btn-find-k36").addEventListener("click", () => checkHelp('K36'));
 
 /* --- Wire events --- */
 c("search-name").addEventListener("input",e=>renderSuggestions(e.target.value||""));
