@@ -3,820 +3,753 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LỊCH CỐNG HIẾN HGS - Xanh nhạt</title>
+  <title>LỊCH CỐNG HIẾN HGS - XUÂN BÍNH NGỌ</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
 
   <style>
-    body { font-family: 'Inter', sans-serif; background: #eef4fb; color: #1f2937; }
-    .card { background: #ffffff; border-radius: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-    .toast {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(59,130,246,0.95); color: white; padding: 10px 18px;
-      border-radius: 10px; font-weight: 600; z-index: 9999; animation: fadeInOut 2s forwards;
+    html { font-size: 17px; scroll-behavior: smooth; } 
+    body { 
+      font-family: 'Plus Jakarta Sans', sans-serif; 
+      background: linear-gradient(135deg, #fff5f5 0%, #f0f4f8 100%); 
+      color: #1e293b; 
+      min-height: 100vh;
     }
-    @keyframes fadeInOut {
-      0% { opacity: 0; transform: translate(-50%, -55%); }
-      10%, 90% { opacity: 1; transform: translate(-50%, -50%); }
-      100% { opacity: 0; transform: translate(-50%, -45%); }
+    .glass-card { 
+      background: rgba(255, 255, 255, 0.95); 
+      border-radius: 1.25rem; 
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: transform 0.2s;
     }
-    #suggestions { z-index: 50; }
-    table.result-table th, table.result-table td {
-      padding: 8px 6px; border-bottom: 1px solid #e5e7eb; font-size: 13px; text-align:left; vertical-align: middle;
+    .section-title {
+      display: flex; align-items: center; gap: 8px; font-weight: 700; color: #334155;
+      margin-bottom: 1rem; border-left: 4px solid #3b82f6; padding-left: 12px;
     }
-    table.result-table td.center { text-align:center; }
-    .day-container { background: white; border: 1px solid #dbeafe; border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-    .day-title { font-weight: 700; font-size: 15px; padding: 4px 0; color: #2563eb; }
-    .day-past { opacity: 0.6; background: #f8fafc; }
-    .day-today { border: 2px solid #3b82f6; box-shadow: 0 0 10px rgba(59,130,246,0.15); }
-    .btn-main { background: #3b82f6; color: white; border-radius: 8px; padding: 10px 0; font-weight: 600; width: 100%; }
-    .btn-main:hover { background: #2563eb; }
-    .btn-danger { background: #ef4444; color: white; border-radius: 8px; padding: 10px 0; font-weight: 600; width: 100%; }
-    .btn-yellow { background: #facc15; color: #1f2937; border-radius: 8px; padding: 10px 0; font-weight: 600; width: 100%; }
+    .btn-action { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .btn-action:active { transform: scale(0.97); }
     
-    .checkbox-wrapper { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
-    .checkbox-wrapper input { width: 16px; height: 16px; }
+    .toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: white; padding: 12px 24px;
+      border-radius: 99px; font-weight: 600; z-index: 9999; animation: slideDownUp 2.5s forwards;
+    }
+    @keyframes slideDownUp {
+      0% { opacity: 0; transform: translate(-50%, -20px); }
+      15%, 85% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -20px); }
+    }
+    
+    .day-container { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; transition: all 0.2s; }
+    .day-container:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    .day-even { background: #ffffff; }
+    .day-odd { background: #f8fafc; }
+
+    .staff-sub-table td { padding: 8px 10px !important; font-size: 0.85rem; }
+
+    #cloud-status {
+      font-size: 10px; font-weight: 800; padding: 2px 10px; border-radius: 20px;
+      text-transform: uppercase;
+    }
+    .status-online { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .status-offline { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+    .tet-text {
+      background: linear-gradient(to bottom, #ef4444, #b91c1c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .arrow-icon { transition: transform 0.3s ease; }
+    .details-open .arrow-icon { transform: rotate(180deg); }
+    .details-content { display: none; }
+    .details-open .details-content { display: block; }
+
+    #secret-admin-trigger {
+        position: fixed;
+        bottom: 5px;
+        right: 5px;
+        width: 12px;
+        height: 12px;
+        background: rgba(0,0,0,0.03);
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 1000;
+    }
+
+    @keyframes pulse-red {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .btn-muaban {
+      animation: pulse-red 2s infinite;
+      background: linear-gradient(90deg, #ef4444, #f59e0b);
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 1rem;
+      color: white;
+      font-weight: 900;
+      text-align: center;
+      margin-top: 15px;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .btn-muaban:active { transform: scale(0.95); }
+
+    .search-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      z-index: 50;
+      max-height: 250px;
+      overflow-y: auto;
+      margin-top: 4px;
+    }
+    .search-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.2s;
+    }
+    .search-item:hover { background: #f8fafc; }
+    .search-item input { width: 18px; height: 18px; margin-right: 12px; cursor: pointer; }
+    .search-item span { font-size: 14px; font-weight: 600; color: #334155; }
+
+    .selection-summary {
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      margin-top: 4px;
+      padding-left: 4px;
+    }
   </style>
 </head>
 
-<body class="p-3">
-  <div class="max-w-lg mx-auto card p-4 space-y-4">
-    <div class="text-center">
-      <h1 class="text-xl font-bold text-blue-600">📅 LỊCH "CỐNG HIẾN" HGS (Quốc Tế)</h1>
-      <p class="text-sm text-gray-600 mt-1">
-        Đây là link tính lịch Quốc Tế, Nội Địa sử dụng <a href="https://huyhaile11.github.io/HGStest/" target="_blank" class="text-red-500 underline font-medium">link này</a>.
-      </p>
-      <p class="text-sm text-gray-500 mt-1">
-        Nhập ca như: S; X; A; HC; 1X; 1-X; X1; X-1; 0.5X-1; H; DH; M...
-      </p>
-    </div>
+<body class="p-4 md:p-8">
+  <div class="max-w-2xl mx-auto space-y-6">
+    
+    <header class="text-center space-y-3">
+      <h2 class="text-2xl md:text-3xl font-black tet-text tracking-widest uppercase">
+        🧨 MỪNG XUÂN BÍNH NGỌ 2026 🧨
+      </h2>
+      
+      <a href="https://www.facebook.com/huy.hai.333030" target="_blank"
+         class="inline-block px-5 py-2 bg-white/70 text-blue-600 font-bold text-sm rounded-full shadow-sm border border-blue-100 hover:bg-white transition-all">
+        ✨ Created by Hải 9 ✨
+      </a>
 
-    <div class="space-y-2">
-      <input id="week-name" type="text" placeholder="Tên tuần (VD: Tuần 44 - Tháng 10)"
-             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400">
-      <div class="flex gap-2 flex-wrap">
-        <button id="save-week" class="flex-1 btn-main">💾 Lưu tuần</button>
-        <select id="week-select" class="flex-1 border border-gray-300 rounded-lg text-sm px-2 py-2">
-          <option value="">Chọn tuần</option>
-        </select>
+      <div class="pt-2">
+        <div id="cloud-status" class="status-offline">Đang kết nối...</div>
+        <h1 class="text-xl font-extrabold text-slate-700 block mt-1">📅 LỊCH CỐNG HIẾN HGS</h1>
+        
+        <div class="mt-4 px-2 flex gap-2 items-end">
+          <div class="flex-1 text-left">
+            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Chọn tuần làm việc:</label>
+            <select id="week-select" class="w-full border-2 border-blue-100 rounded-xl px-4 py-3 bg-white font-bold text-blue-800 shadow-sm outline-none focus:ring-2 focus:ring-blue-400">
+                <option value="">-- Đang tải dữ liệu... --</option>
+            </select>
+          </div>
+          <button id="btn-delete-week" class="bg-rose-50 text-rose-500 p-3 rounded-xl border border-rose-100 hover:bg-rose-500 hover:text-white transition-colors" title="Xoá tuần này">
+            🗑️
+          </button>
+        </div>
+
+        <a href="https://huyhaile11.github.io/banca/" target="_blank" class="btn-muaban">
+           🛒 TRAO ĐỔI CA BẤM VÀO ĐÂY 🛒
+        </a>
       </div>
+    </header>
 
-      <div class="space-y-2">
-        <input type="file" id="excel-upload" accept=".xls,.xlsx"
-               class="w-full border border-gray-300 rounded-lg text-sm px-3 py-2">
-        <p class="text-xs text-gray-500 mt-1">
-          (Để xem lịch và chuyến bay của tất cả mọi người, hãy tải file Excel và upload lên web, cách tải file Excel tại <a href="https://www.thegioididong.com/tin-tuc/cach-tai-file-google-sheets-ve-dien-thoai-1417179?gidzl=FVum457VWrqou3WJKCA0M3BaFnT8m84AA-Cx5qx1W5akucaO7CU117lcEanEmeK1V-Dh6sPK4OfvMDQAK0" target="_blank" class="text-red-500 underline font-medium">đây</a>)
-        </p>
-        <select id="employee-select"
-                class="w-full border border-gray-300 rounded-lg text-sm px-3 py-2">
+    <div class="glass-card p-5 space-y-4">
+      <div class="section-title">📝 Xem lịch cá nhân</div>
+      <select id="employee-select" class="w-full border border-slate-200 rounded-xl text-base px-4 py-3 bg-blue-50 font-semibold text-blue-800 outline-none focus:ring-2 focus:ring-blue-400">
           <option value="">-- Chọn nhân viên --</option>
-        </select>
+      </select>
+      <div id="days-container" class="grid grid-cols-1 gap-2.5"></div>
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button id="calc-week" class="btn-action bg-blue-600 text-white rounded-xl py-4 font-bold shadow-md hover:bg-blue-700">📅 Tính giờ tuần</button>
+        <button id="clear-week" class="btn-action bg-slate-400 text-white rounded-xl py-4 font-bold shadow-md hover:bg-slate-500">🧹 Xóa trắng</button>
       </div>
     </div>
 
-    <div id="days-container" class="space-y-3"></div>
-
-    <div class="grid grid-cols-1 gap-2">
-      <button id="calc-week" class="btn-main">📅 Tính lịch tuần</button>
-      <button id="clear-week" class="btn-yellow">🧹 Xóa tuần này</button>
-      <button id="clear-all" class="btn-danger">🗑 Xóa tất cả</button>
-    </div>
-
-    <div id="result-container" class="hidden">
-      <div class="overflow-x-auto mt-3 rounded-lg border border-gray-200">
-        <table class="w-full text-sm text-gray-700">
-          <thead class="bg-blue-100">
+    <div id="result-container" class="hidden glass-card p-5 overflow-hidden">
+      <div class="flex justify-between items-center mb-4">
+        <div class="section-title mb-0">📊 Bảng tổng hợp</div>
+        <button id="btn-export-image" class="bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-emerald-600 transition-all">
+          📸 Tải ảnh lịch
+        </button>
+      </div>
+      <div class="overflow-x-auto rounded-xl border border-slate-100">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-800 text-white">
             <tr>
-              <th class="px-2 py-1 text-left">Thứ</th>
-              <th class="px-2 py-1 text-left">Ca</th>
-              <th class="px-2 py-1 text-center">Giờ vào</th>
-              <th class="px-2 py-1 text-center">Giờ ra</th>
-              <th class="px-2 py-1 text-center">Tổng</th>
+              <th class="px-4 py-3 text-left">Thứ</th>
+              <th class="px-4 py-3 text-left">Ca</th>
+              <th class="px-4 py-3 text-center">Vào</th>
+              <th class="px-4 py-3 text-center">Ra</th>
+              <th class="px-4 py-3 text-center font-bold">Tổng</th>
             </tr>
           </thead>
-          <tbody id="result-body"></tbody>
+          <tbody id="result-body" class="divide-y divide-slate-100"></tbody>
         </table>
       </div>
-      <p id="tribute" class="text-center font-bold text-blue-600 mt-2 hidden">
-        💪 BẠN ĐÃ CỐNG HIẾN HẾT MÌNH CẢ TUẦN!
-      </p>
-    </div>
-
-    <a href="https://www.facebook.com/huy.hai.333030" target="_blank"
-      class="text-center mt-3 font-semibold text-blue-600 text-sm bg-blue-50 py-2 rounded-lg shadow-sm block no-underline">
-      ✨ Created by Hải 9 ✨
-    </a>
-
-    <div class="border-t pt-4 mt-4">
-      <h2 class="text-lg font-semibold text-blue-600 text-center mb-2">
-        🔍 Tra cứu chuyến bay
-      </h2>
-      <p class="text-xs text-center text-red-500 mb-2 italic">
-        "Link này chỉ có mục đích tham khảo, File cán bộ gửi vẫn luôn là chuẩn nhất"
-      </p>
-      <div class="space-y-2">
-        <input id="search-name" type="text" placeholder="Nhập tên nhân viên (VD: HẢI 9 hoặc Hai 9)"
-               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:ring-2 focus:ring-blue-400"
-               autocomplete="off">
-        <div id="suggestions"
-             class="bg-white border border-gray-200 rounded-lg shadow hidden max-h-40 overflow-y-auto"></div>
-        <div id="flight-result" class="mt-3 text-sm"></div>
+      <div id="gay-doi-nguoi" class="hidden mt-4 text-center text-red-600 font-bold text-base animate-pulse italic">
+        ⚠️ Tuần này bạn gãy đôi người, cố lên nhé!
       </div>
     </div>
 
-    <div class="border-t-2 border-blue-100 pt-5 mt-6 bg-white rounded-xl p-3 shadow-sm">
-      <h2 class="text-lg font-bold text-green-600 text-center mb-1">
-        🤝 LÀM HỘ
-      </h2>
-      <p class="text-xs text-center text-gray-500 mb-3">
-        Tìm người rảnh (không vướng ca) trong khoảng giờ bạn chọn
-      </p>
+    <div class="glass-card p-5 space-y-4 border-t-4 border-t-indigo-500">
+      <div class="section-title">🔍 Chuyến bay & Đồng đội</div>
+      <div class="grid grid-cols-1 gap-3">
+        <div class="relative">
+          <input id="search-name" type="text" placeholder="Tìm tên nhân viên..."
+                 class="w-full border border-slate-200 rounded-xl px-4 py-3 pl-10 text-base focus:ring-2 focus:ring-indigo-400 outline-none shadow-sm" autocomplete="off">
+          <span class="absolute left-3 top-4 opacity-40">👤</span>
+          <div id="suggestions" class="absolute w-full bg-white border border-slate-200 rounded-xl shadow-xl mt-1 hidden z-50 max-h-60 overflow-y-auto"></div>
+        </div>
+        <select id="flight-select-dropdown" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-base bg-indigo-50 font-medium text-indigo-900 outline-none focus:ring-2 focus:ring-indigo-400">
+          <option value="">-- Hoặc chọn theo chuyến bay --</option>
+        </select>
+      </div>
+      <div id="name-result-info"></div>
+      <div id="flight-detail-info"></div>
+    </div>
+
+    <div class="glass-card p-5 space-y-4 border-t-4 border-t-emerald-500 bg-emerald-50/20">
+      <div class="section-title text-emerald-700">🤝 Tìm người làm hộ</div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="p-3 bg-white rounded-xl border border-emerald-100">
+          <p class="text-[10px] font-bold text-emerald-600 uppercase">Bắt đầu</p>
+          <div class="flex gap-1">
+            <select id="help-start-day" class="flex-1 bg-transparent text-sm font-semibold outline-none"></select>
+            <input id="help-start-time" type="number" step="0.5" placeholder="0.0" class="w-12 text-center border-b border-emerald-200 font-bold text-emerald-700 text-base">
+          </div>
+        </div>
+        <div class="p-3 bg-white rounded-xl border border-emerald-100">
+          <p class="text-[10px] font-bold text-emerald-600 uppercase">Kết thúc</p>
+          <div class="flex gap-1">
+            <select id="help-end-day" class="flex-1 bg-transparent text-sm font-semibold outline-none"></select>
+            <input id="help-end-time" type="number" step="0.5" placeholder="0.0" class="w-12 text-center border-b border-emerald-200 font-bold text-emerald-700 text-base">
+          </div>
+        </div>
+      </div>
+
+      <div class="relative">
+        <input id="help-search-input" type="text" placeholder="Tìm & tích chọn người muốn soi ca..." 
+               class="w-full border border-emerald-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-400 outline-none shadow-sm" autocomplete="off">
+        <div id="help-dropdown" class="search-dropdown hidden"></div>
+        <div id="help-selection-summary" class="selection-summary">Đã chọn: 0 người</div>
+      </div>
+
+      <button id="btn-find-help" class="btn-action bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-md w-full text-base">🔍 Kiểm tra rảnh / bận</button>
       
-      <div class="space-y-3">
-        <div class="flex gap-2 items-center">
-            <span class="text-xs font-bold text-gray-700 w-16">Bắt đầu:</span>
-            <select id="help-start-day" class="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm bg-gray-50">
-                <option value="mon">Thứ Hai</option>
-                <option value="tue">Thứ Ba</option>
-                <option value="wed">Thứ Tư</option>
-                <option value="thu">Thứ Năm</option>
-                <option value="fri">Thứ Sáu</option>
-                <option value="sat">Thứ Bảy</option>
-                <option value="sun">Chủ Nhật</option>
-            </select>
-            <input id="help-start-time" type="number" step="0.5" placeholder="Giờ (VD: 22)" 
-                   class="w-24 border border-gray-300 rounded px-2 py-1.5 text-sm">
-        </div>
-
-        <div class="flex gap-2 items-center">
-            <span class="text-xs font-bold text-gray-700 w-16">Kết thúc:</span>
-            <select id="help-end-day" class="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm bg-gray-50">
-                <option value="mon">Thứ Hai</option>
-                <option value="tue">Thứ Ba</option>
-                <option value="wed">Thứ Tư</option>
-                <option value="thu">Thứ Năm</option>
-                <option value="fri">Thứ Sáu</option>
-                <option value="sat">Thứ Bảy</option>
-                <option value="sun">Chủ Nhật</option>
-            </select>
-            <input id="help-end-time" type="number" step="0.5" placeholder="Giờ (VD: 6)" 
-                   class="w-24 border border-gray-300 rounded px-2 py-1.5 text-sm">
-        </div>
-
-        <div class="pt-2 space-y-3">
-            <button id="btn-find-all" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg shadow border border-purple-800">
-                🔍 Tìm Tất Cả (Toàn bộ NV)
-            </button>
-            
-            <div class="relative flex py-1 items-center">
-                <div class="flex-grow border-t border-gray-300"></div>
-                <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">Hoặc tìm theo nhóm K36</span>
-                <div class="flex-grow border-t border-gray-300"></div>
-            </div>
-
-            <div class="flex justify-center gap-6 py-1">
-                <label class="checkbox-wrapper">
-                    <input type="checkbox" id="chk-7c" checked>
-                    <span class="text-sm font-medium">Team 7C</span>
-                </label>
-                <label class="checkbox-wrapper">
-                    <input type="checkbox" id="chk-pr" checked>
-                    <span class="text-sm font-medium">Team PR</span>
-                </label>
-            </div>
-            <button id="btn-find-k36" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-lg shadow">
-                🔍 Tìm K36 (Team 7C/PR)
-            </button>
-        </div>
-
-        <div id="help-result" class="hidden mt-3 bg-green-50 p-3 rounded-lg border border-green-200">
-            <p class="font-bold text-green-700 text-sm mb-2 border-b border-green-200 pb-1">KẾT QUẢ:</p>
-            <ul id="help-list" class="list-disc list-inside text-sm text-gray-700 space-y-1"></ul>
-        </div>
+      <div id="help-result" class="hidden p-3 bg-white rounded-xl border border-emerald-200 max-h-40 overflow-y-auto">
+          <ul id="help-list" class="grid grid-cols-1 gap-2 text-sm font-medium text-slate-600"></ul>
       </div>
     </div>
+
+    <div class="glass-card p-5 space-y-4 border-t-4 border-t-orange-500 bg-orange-50/20">
+      <div class="section-title text-orange-700">🏆 "Giờ Vàng" Theo Ngày</div>
+      
+      <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-orange-100 shadow-sm">
+        <label class="text-sm font-bold text-orange-700">Số tiếng muốn tìm:</label>
+        <input id="golden-hours-count" type="number" value="4" step="0.5" min="0.5" max="24" 
+               class="w-20 border-2 border-orange-200 rounded-lg px-2 py-1 text-center font-black text-orange-600 outline-none focus:border-orange-500">
+      </div>
+
+      <div class="relative">
+        <input id="golden-search-input" type="text" placeholder="Tìm & tích chọn người muốn tìm giờ vàng..." 
+               class="w-full border border-orange-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-400 outline-none shadow-sm" autocomplete="off">
+        <div id="golden-dropdown" class="search-dropdown hidden"></div>
+        <div id="golden-selection-summary" class="selection-summary">Đã chọn: 0 người</div>
+      </div>
+
+      <button id="btn-find-best-weekly" class="btn-action bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md w-full text-base">
+        🔥 Xem giờ rảnh nhất nhóm này
+      </button>
+      
+      <div id="best-weekly-result" class="hidden space-y-3"></div>
     </div>
 
-  <div id="toast"></div>
-<script>
-/* ======== KHỞI TẠO INPUT CHO CÁC THỨ (Không đổi) ======== */
-document.addEventListener("DOMContentLoaded", () => {
-  const days = ["Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy","Chủ Nhật"];
-  const box = document.getElementById("days-container");
-  box.innerHTML = "";
-  days.forEach((d,i)=>{
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = `
-      <label class="block text-sm font-semibold text-gray-700 mb-1">${d}</label>
-      <input id="day${i}" type="text" placeholder="VD: S; X; A; HC; 1X; X-1"
-      class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400">
-    `;
-    box.appendChild(wrapper);
-  });
-});
-</script>
+    <div id="secret-admin-trigger"></div>
+    <input type="file" id="excel-upload" accept=".xls,.xlsx" style="display:none;">
+
+  </div>
 
 <script>
-/* ================= JAVASCRIPT CHÍNH ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyA2scrs8GpNAWZ5ETId6z3vkUMmArD1yn8",
+  authDomain: "hgs36-6db0b.firebaseapp.com",
+  databaseURL: "https://hgs36-6db0b-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "hgs36-6db0b",
+  storageBucket: "hgs36-6db0b.firebasestorage.app",
+  messagingSenderId: "356125658008",
+  appId: "1:356125658008:web:aec521395459b2192579ed",
+  measurementId: "G-JZVNL3EWSQ"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 const c = id => document.getElementById(id);
 const days = ["Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy","Chủ Nhật"];
 const daysOrder = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
-const EXCEL_STORAGE_KEY = 'hgs_last_excel_data_v3';
-const SEARCH_STORAGE_KEY = 'hgs_last_search_name_v3';
+const priority = ["HẢI 9", "KHẢI 2", "THU 9", "LY 5", "HẰNG 14", "LẬP 2", "HUY 12", "DŨNG 12", "HUYỀN 15", "KHÁNH 2", "SƠN 12", "NGHĨA 1", "TRÂM 3", "ANH 10", "HOÀNG 10", "HUY 11", "LY 2", "HUY 14"];
+const dayMap = {mon:0, tue:1, wed:2, thu:3, fri:4, sat:5, sun:6};
 
+let allWeeks = {};
 let employeeData = [];
 let flightData = [];
+let pendingFileName = "";
 
-const showToast = msg => {
-  const t = document.createElement('div');
-  t.className='toast';
-  t.textContent=msg;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(),2000);
-};
+let selectedHelpNames = new Set();
+let selectedGoldenNames = new Set();
 
-/* --------- CHUẨN HÓA CHUỖI (Không đổi) ---------- */
-function removeDiacritics(str){
-  if(!str) return "";
-  const s = str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  return s.replace(/đ/g,'d').replace(/Đ/g,'D');
-}
-function normalizeText(s){
-  if(!s) return "";
-  return removeDiacritics(s)
-    .replace(/[–—]/g,'-')
-    .replace(/\u00A0/g,' ')
-    .replace(/[^A-Z0-9\s\-]/gi,'')
-    .trim()
-    .replace(/\s+/g,' ')
-    .toUpperCase();
-}
-
-/* ---------- LƯU/TẢI TUẦN (Không đổi) ---------- */
-function createInputs(){
-  const box = c("days-container");
-  box.innerHTML = "";
-  days.forEach((d,i)=>{
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = `
-      <label class="block text-sm font-semibold text-gray-700 mb-1">${d}</label>
-      <input id="day${i}" type="text" placeholder="VD: S; X; A; HC; 1X; X-1"
-      class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400">
-    `;
-    box.appendChild(wrapper);
-  });
-}
-const keyWeek = n => "week_"+n;
-const loadWeeksList = ()=>JSON.parse(localStorage.getItem("weeks_list")||"[]");
-const saveWeeksList = arr=>localStorage.setItem("weeks_list", JSON.stringify(arr));
-
-function saveWeek(){
-  const n = c("week-name").value.trim();
-  if(!n){ showToast("Nhập tên tuần"); return; }
-  const data = {};
-  days.forEach((_,i)=> data["day"+i]=c("day"+i).value.trim());
-  localStorage.setItem(keyWeek(n), JSON.stringify(data));
-  let list = loadWeeksList();
-  if(!list.includes(n)){ list.push(n); saveWeeksList(list); fillWeekSelect(); }
-  showToast("Đã lưu tuần "+n);
-}
-function fillWeekSelect(){
-  const s = c("week-select"); if(!s) return;
-  const list = loadWeeksList();
-  s.innerHTML='<option value="">Chọn tuần</option>';
-  list.forEach(n=>{
-    const o=document.createElement('option');
-    o.value=n; o.textContent=n; s.appendChild(o);
-  });
-}
-function loadWeek(n){
-  const raw = localStorage.getItem(keyWeek(n));
-  if(!raw){ showToast("Tuần trống"); return; }
-  const d = JSON.parse(raw);
-  days.forEach((_,i)=> c("day"+i).value = d["day"+i]||"");
-  showToast("Đã tải "+n);
-}
-function deleteWeek(){
-  const n=c("week-name").value.trim();
-  if(!n) return showToast("Nhập tên tuần");
-  localStorage.removeItem(keyWeek(n));
-  let list = loadWeeksList().filter(x=>x!==n);
-  saveWeeksList(list); fillWeekSelect();
-  days.forEach((_,i)=> c("day"+i).value="");
-  showToast("Đã xóa tuần "+n);
-}
-function clearAll(){
-  if(!confirm("Xóa tất cả tuần?")) return;
-  loadWeeksList().forEach(n=>localStorage.removeItem(keyWeek(n)));
-  saveWeeksList([]); fillWeekSelect();
-  days.forEach((_,i)=> c("day"+i).value="");
-  showToast("Đã xóa tất cả");
-}
-
-/* ---------- TÍNH CA (Không đổi) ---------- */
-const shifts={
-  HC:{start:7.5,end:15.5},A:{start:22,end:30},X:{start:14,end:22},S:{start:6,end:14}
-};
-function parseShift(str){
-  str=(str||"").toUpperCase().trim();
-  if(!str) return null;
-  if(str==="OM"||str==="OFF") return {start:0,end:0,dur:0}; 
-
-  const re_fixed=/^(\d*\.?\d*-?)?(H|DH|M)(\d*\.?\d*)?(-?\d*\.?\d*)?$/; 
-  const m_fixed=re_fixed.exec(str);
-  if(m_fixed){
-      const [,pre,code,val,suf]=m_fixed;
-      let duration=8, start=8; 
-      
-      if(code==="DH"||code==="M"){
-          duration=parseFloat(val)||0;
-      } else if (code==="H"){
-          if(val){duration=parseFloat(val);}
-          if(/H4S/.test(str)) { start=8; duration=4; } 
-          else if(/H4C/.test(str)) { start=14; duration=4; }
-      }
-      
-      if(duration<=0) return {start:0,end:0,dur:0};
-      
-      let end=start+duration;
-      if(pre){ const v=parseFloat(pre.replace("-","")); pre.includes("-")?start+=v:start-=v; }
-      if(suf){ const v=parseFloat(suf.replace("-","")); suf.startsWith("-")?end-=v:end+=v; }
-
-      if(start>=end) end+=24;
-      return {start,end,dur:end-start};
-  }
-  
-  const re=/^(\d*\.?\d*-?)?([A-Z]{1,2})(-?\d*\.?\d*)?$/;
-  const m=re.exec(str);
-  if(!m) return {error:"Sai định dạng"};
-  const [,pre,code,suf]=m;
-  if(!shifts[code]) return {error:"Ca không tồn tại"};
-  let {start,end}=shifts[code];
-  if(pre){ const val=parseFloat(pre.replace("-","")); pre.includes("-")?start+=val:start-=val; }
-  if(suf){ const val=parseFloat(suf.replace("-","")); suf.startsWith("-")?end-=val:end+=val; }
-  if(start>=end) end+=24;
-  return {start,end,dur:end-start};
-}
-function fmtHoursToHHMM(t){
-  const hh=Math.floor(t%24);
-  const mm=Math.round((t%1)*60);
-  return String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0");
-}
-function calcWeek(){
-  const tbody=c("result-body"); if(!tbody) return;
-  tbody.innerHTML=""; let total=0,full=true;
-  days.forEach((d,i)=>{
-    const v=c("day"+i).value.trim();
-    if(!v){ tbody.innerHTML+=`<tr><td>${d}</td><td colspan=4 class="italic text-gray-400">Nghỉ</td></tr>`; full=false; return; }
-    let sum=0; const parts=v.split(";").map(x=>x.trim()).filter(Boolean);
-    parts.forEach((p,j)=>{
-      const r=parseShift(p);
-      if(r&&r.error){tbody.innerHTML+=`<tr><td>${j?"":d}</td><td>${p}</td><td colspan=3 class="text-red-600">${r.error}</td></tr>`;return;}
-      if(r){
-          if(r.dur===0 && (p==="OM"||p==="OFF")){
-              tbody.innerHTML+=`<tr><td>${j?"":d}</td><td>${p}</td><td colspan=3 class="italic text-gray-400">${p==="OM"?"Nghỉ ốm":"Nghỉ OFF"}</td></tr>`;
-          } else if(r.dur>0){
-              tbody.innerHTML+=`<tr><td>${j?"":d}</td><td>${p}</td><td>${fmtHoursToHHMM(r.start)}</td><td>${fmtHoursToHHMM(r.end)}</td><td>${r.dur.toFixed(1)}h</td></tr>`;
-              sum+=r.dur;
-          }
-      }
-    });
-    if(parts.length>1) tbody.innerHTML+=`<tr class="bg-blue-50 font-medium"><td></td><td colspan=3>Tổng ngày</td><td>${sum.toFixed(1)}h</td></td></tr>`;
-    total+=sum;
-  });
-  tbody.innerHTML+=`<tr class="bg-blue-100 font-bold"><td colspan=4>Tổng tuần</td><td>${total.toFixed(1)}h</td></tr>`;
-  c("result-container").classList.remove("hidden");
-  c("tribute").classList.toggle("hidden",!full);
-  showToast("Đã tính xong!");
-}
-
-/* ---------- EXCEL PARSE (Không đổi) ---------- */
-function combine(a,b){
-  const v1=(a||"").toString().trim();
-  const v2=(b||"").toString().trim();
-  let combined=[v1,v2].filter(Boolean).join(";");
-  if(!combined||combined.toUpperCase().includes("OFF")) combined="";
-  return combined;
-}
-
-function parseSheet(sheet,name){
-  const rows=XLSX.utils.sheet_to_json(sheet,{header:1});
-  if(rows.length<2) return [];
-  return rows.slice(1).map(row=>({
-    name:(row[1]||"").toString().trim(),
-    mon:combine(row[2],row[4]),
-    tue:combine(row[5],row[7]),
-    wed:combine(row[8],row[10]),
-    thu:combine(row[11],row[13]),
-    fri:combine(row[14],row[16]),
-    sat:combine(row[17],row[19]),
-    sun:combine(row[20],row[22]),
-    source:name
-  })).filter(e=>e.name);
-}
-
-function excelTimeToHHMM(v){
-  if(v===undefined||v===null) return "";
-  if(typeof v==='string') return v.trim();
-  if(typeof v==='number'){
-    const frac=v-Math.floor(v);
-    const totalMinutes=Math.round(frac*24*60);
-    const H=Math.floor(totalMinutes/60);
-    const M=totalMinutes%60;
-    return String(H).padStart(2,'0')+':'+String(M).padStart(2,'0');
-  }
-  return String(v);
-}
-
-/* --- parseFlightSheet (Đã cập nhật cột và hàng) --- */
-function parseFlightSheet(sheet,sheetName){
-  const out=[];
-  const startRow=4,endRow=46;
-  
-  const fltCol='M'; const etdCol='N'; const gateCol='Q'; 
-  
-  const startCol=XLSX.utils.decode_col('P');
-  const endCol=XLSX.utils.decode_col('AF');
-
-  let lastFlt="",lastEtd="",lastGate="";
-  
-  const namePattern = /([\p{L}Đđ\s\-]+?)\s+(\d{1,4})/ug;
-
-  for(let r=startRow;r<=endRow;r++){
-    const fltCell=sheet[fltCol+r];
-    const etdCell=sheet[etdCol+r];
-    const gateCell=sheet[gateCol+r];
-
-    const fltValRaw=fltCell?(fltCell.v||'').toString().trim():'';
-    const etdValRaw=etdCell?etdCell.v:'';
-    const gateValRaw=gateCell?(gateCell.v||'').toString().trim():'';
-    const fltVal=fltValRaw||lastFlt;
-    const etdVal=etdValRaw!==undefined&&etdValRaw!==""?excelTimeToHHMM(etdValRaw):lastEtd;
-    const gateVal=gateValRaw||lastGate;
-    if(fltVal){lastFlt=fltVal;lastEtd=etdVal;lastGate=gateVal;}
-    if(!fltVal) continue;
-
-    for(let c=startCol;c<=endCol;c++){
-      const colLetter=XLSX.utils.encode_col(c);
-      const cell=sheet[colLetter+r];
-      if(!cell||!cell.v) continue;
-      let raw=String(cell.v).trim();
-      if(!raw) continue;
-      
-      const taskGroups = raw.split(/[;\n]+/).map(x=>x.trim()).filter(Boolean);
-      
-      const isSup=colLetter==='P',isGate=colLetter==='Q',
-            isKetso=colLetter==='R',isWlct=colLetter==='S';
-
-      taskGroups.forEach(groupStr => {
-        const upperGroup = groupStr.toUpperCase();
-        let tag = "";
-        const hasBD = /\b(BRD|BD)\b/.test(upperGroup);
-        const hasKO = /\b(KO|K)\s*(BRD|BD)\b/.test(upperGroup);
-        if (hasKO) tag = "NO";
-        else if (hasBD) tag = "BRD";
-
-        const notes = [];
-        if(/\bK[EÊ]M\s*QUẦY\b/.test(upperGroup)) notes.push("KÈM QUẦY");
-
-        const matches = [...groupStr.matchAll(namePattern)];
-        matches.forEach(m => {
-          const nameOnly = `${m[1].trim()} ${m[2].trim()}`.toUpperCase();
-          const normalizedName = normalizeText(nameOnly);
-          out.push({
-            sheet:sheetName,row:r,col:colLetter,tokenRaw:groupStr,
-            nameOnly:nameOnly,nameNormalized:normalizedName,
-            tag:tag,
-            notes:notes,
-            flt:fltVal,etd:etdVal,gate:gateVal,
-            supFlag:isSup,gateFlag:isGate,ketsoFlag:isKetso,wlctFlag:isWlct,
-            uniqueKey:`${sheetName}-${fltVal}-${etdVal}-${gateVal}-${normalizedName}-${colLetter}-${r}`
-          });
-        });
-      });
+db.ref("hgs_weeks").on("value", (snap) => {
+    const data = snap.val();
+    if(data){
+        allWeeks = data;
+        c("cloud-status").textContent = "Dữ liệu: ONLINE";
+        c("cloud-status").className = "status-online";
+        updateWeekDropdown();
+    } else {
+        c("cloud-status").textContent = "Dữ liệu: TRỐNG";
+        c("cloud-status").className = "status-offline";
+        c("week-select").innerHTML = '<option value="">-- Chưa có dữ liệu --</option>';
     }
-  }
-  return out;
+});
+
+function updateWeekDropdown() {
+    const sel = c("week-select");
+    const currentVal = sel.value;
+    const keys = Object.keys(allWeeks).sort().reverse();
+    sel.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join("");
+    if (!currentVal || !allWeeks[currentVal]) {
+        sel.value = keys[0];
+        loadWeekData(keys[0]);
+    } else {
+        sel.value = currentVal;
+        loadWeekData(currentVal);
+    }
 }
 
-/* --- Đọc file Excel & gộp dữ liệu (Không đổi) --- */
-function processExcelData(data){
-  const wb=XLSX.read(data,{type:"array"});
-  const target=["bảng chấm công qt","bảng chấm công nđ"];
-  let allEmp=[];
-  target.forEach(t=>{
-    const sn=wb.SheetNames.find(n=>n.trim().toLowerCase()===t);
-    if(sn){const s=wb.Sheets[sn];allEmp=allEmp.concat(parseSheet(s,sn));}
-  });
-  employeeData=allEmp;
-  const sel=c("employee-select");
-  sel.innerHTML='<option value="">-- Chọn nhân viên --</option>';
-  employeeData.sort((a,b)=>a.name.localeCompare(b.name,"vi",{sensitivity:"base"}))
-    .forEach(e=>{
-      const o=document.createElement('option');
-      o.value=e.name;o.textContent=e.name+" ("+e.source.toUpperCase().replace("BẢNG CHẤM CÔNG ","")+")";
-      sel.appendChild(o);
+function loadWeekData(weekKey) {
+    if (!allWeeks[weekKey]) return;
+    employeeData = allWeeks[weekKey].employees || [];
+    flightData = allWeeks[weekKey].flights || [];
+    updateUI();
+}
+
+c("week-select").onchange = e => loadWeekData(e.target.value);
+
+c("btn-delete-week").onclick = () => {
+    const week = c("week-select").value;
+    if (!week) return;
+    if (confirm(`⚠️ Bạn có chắc muốn xoá hoàn toàn dữ liệu của "${week}" không?`)) {
+        db.ref("hgs_weeks/" + week).remove().then(() => showToast("🗑️ Đã xoá tuần!"));
+    }
+};
+
+function updateUI(){
+    const sel = c("employee-select");
+    sel.innerHTML = '<option value="">-- Chọn nhân viên nhanh --</option>';
+    
+    const sorted = [...employeeData].sort((a, b) => {
+        const idxA = priority.indexOf(a.name.toUpperCase());
+        const idxB = priority.indexOf(b.name.toUpperCase());
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return a.name.localeCompare(b.name, "vi");
     });
-  flightData=[];
-  daysOrder.forEach(d=>{
-    const sn=wb.SheetNames.find(n=>n.trim().toUpperCase()===d);
-    if(sn){const s=wb.Sheets[sn];flightData=flightData.concat(parseFlightSheet(s,d));}
-  });
-  return true;
+
+    sorted.forEach(e => { sel.innerHTML += `<option value="${e.name}">${e.name}</option>`; });
+    
+    const fSel = c("flight-select-dropdown");
+    fSel.innerHTML = '<option value="">-- Hoặc chọn theo chuyến bay --</option>';
+    const unique = [];
+    flightData.forEach(f => {
+        const key = `${f.sheet} | ${f.flt} | ${f.etd}`;
+        if(!unique.find(x => x.key === key)) unique.push({key, sheet: f.sheet, etd: f.etd});
+    });
+    unique.sort((a,b) => (daysOrder.indexOf(a.sheet) - daysOrder.indexOf(b.sheet)) || a.etd.localeCompare(b.etd));
+    unique.forEach(u => fSel.innerHTML += `<option value="${u.key}">${u.key}</option>`);
+
+    // Reset multi-selects
+    selectedHelpNames.clear();
+    selectedGoldenNames.clear();
+    renderDropdown('help', '');
+    renderDropdown('golden', '');
 }
 
-/* --- File Upload (Không đổi) --- */
-c("excel-upload").addEventListener("change",e=>{
-  const f=e.target.files[0];if(!f) return;
-  const r=new FileReader();
-  r.onload=evt=>{
-    const data=new Uint8Array(evt.target.result);
-    const binary=data.reduce((a,i)=>a+String.fromCharCode(i),"");
-    const base64=btoa(binary);
-    localStorage.setItem(EXCEL_STORAGE_KEY,base64);
-    processExcelData(data);
-    showToast("✅ Đã tải file Excel");
-  };
+c("secret-admin-trigger").onclick = () => c("excel-upload").click();
+c("excel-upload").onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  pendingFileName = f.name.replace(/\.[^/.]+$/, "");
+  const r = new FileReader();
+  r.onload = evt => { processAndUpload(new Uint8Array(evt.target.result)); };
   r.readAsArrayBuffer(f);
-});
+};
 
-/* --- Tải lại file lưu (Không đổi) --- */
-function loadLastExcelData(){
-  const base64=localStorage.getItem(EXCEL_STORAGE_KEY);
-  if(!base64) return false;
-  try{
-    const binary=atob(base64);
-    const arr=new Uint8Array(binary.length);
-    for(let i=0;i<binary.length;i++) arr[i]=binary.charCodeAt(i);
-    processExcelData(arr);
-    showToast("Đã tải dữ liệu từ bộ nhớ");
-    return true;
-  }catch(e){console.error(e);localStorage.removeItem(EXCEL_STORAGE_KEY);return false;}
-}
-
-/* --- employee-select (Không đổi) --- */
-c("employee-select").addEventListener("change",e=>{
-  const name=e.target.value;if(!name) return;
-  const emp=employeeData.find(x=>x.name.trim().toLowerCase()===name.trim().toLowerCase());
-  if(!emp) return showToast("Không tìm thấy!");
-  ["mon","tue","wed","thu","fri","sat","sun"].forEach((d,i)=>c("day"+i).value=emp[d]||"");
-  showToast("Đã tải lịch của "+name);
-
-  c("search-name").value = name;
-  localStorage.setItem(SEARCH_STORAGE_KEY, name);
-  setTimeout(()=>renderFlightResults(name), 120);
-});
-
-/* === Matching helpers === */
-
-// Helper: Tách chuỗi thành token (VD: "HAI 9" -> ["HAI", "9"])
-function tokenizeForMatch(normStr){
-  if(!normStr) return [];
-  return normStr.split(/[\s\-]+/).map(s=>s.trim()).filter(Boolean);
-}
-
-// F_1: Exact String Match (Chỉ tìm tên chính xác, dùng cho KẾT QUẢ CUỐI và LÀM HỘ)
-function exactNameMatches(searchNorm, tokenNorm){
-  return searchNorm === tokenNorm;
-}
-
-// F_2: Partial Token Match (Dùng cho GỢI Ý TÌM KIẾM, cho phép tìm kiếm một phần token)
-function partialNameMatches(searchNorm, tokenNorm){
-  if(!searchNorm || !tokenNorm) return false;
-  const sTokens = tokenizeForMatch(searchNorm);
-  const tTokens = tokenizeForMatch(tokenNorm);
-  if(sTokens.length===0) return false;
-  // Kiểm tra tất cả token trong chuỗi tìm kiếm (sTokens) phải có mặt trong chuỗi đích (tTokens)
-  return sTokens.every(st=>{
-    return tTokens.some(tt => tt === st);
-  });
-}
-
-/* --- SEARCH (Dùng partialNameMatches) --- */
-function renderSuggestions(q){
-  const box=c("suggestions");
-  if(!q||!flightData.length){box.classList.add("hidden");return;}
-  const qNorm=normalizeText(q);
-  const map=new Map();
-  flightData.forEach(d=>{
-    if(d.nameNormalized && !map.has(d.nameNormalized)) map.set(d.nameNormalized, d.nameOnly);
-  });
-  // Sử dụng partialNameMatches cho GỢI Ý
-  const matches=[...map.entries()].filter(([norm])=>{
-    return partialNameMatches(qNorm, norm);
-  }).map(([norm,disp])=>({norm,disp}));
-  if(!matches.length){box.classList.add("hidden");return;}
-  box.innerHTML=matches.map(m=>`<div class="px-3 py-2 hover:bg-blue-50 cursor-pointer" data-n="${m.norm}">${m.disp}</div>`).join("");
-  box.classList.remove("hidden");
-  box.querySelectorAll("div").forEach(div=>{
-    div.onclick=()=>{
-      const val=div.textContent;
-      c("search-name").value=val;
-      box.classList.add("hidden");
-      localStorage.setItem(SEARCH_STORAGE_KEY, val);
-      renderFlightResults(val);
-    };
-  });
-}
-
-/* --- renderFlightResults (Cập nhật logic chỉ hiện đến ngày hiện tại) --- */
-function renderFlightResults(nameRaw){
-  const container=c("flight-result");
-  if(!flightData.length){
-    container.innerHTML=`<p class="text-center text-gray-500 italic">Chưa có dữ liệu. Hãy tải file Excel.</p>`;return;
-  }
-  const qNorm=normalizeText(nameRaw);
-  // Sử dụng exactNameMatches cho KẾT QUẢ CUỐI
-  let matches=flightData.filter(d=>exactNameMatches(qNorm, d.nameNormalized));
-  if(!matches.length){container.innerHTML=`<p class="text-center text-gray-500 italic">Không tìm thấy dữ liệu cho "${nameRaw}"</p>`;return;}
-  const unique=new Map();
-  matches.forEach(m=>{
-    const key=`${m.sheet}-${m.flt}-${m.etd}-${m.gate}-${m.nameNormalized}`;
-    if(unique.has(key)){
-      const e=unique.get(key);
-      e.supFlag = e.supFlag || m.supFlag;
-      e.gateFlag = e.gateFlag || m.gateFlag;
-      e.ketsoFlag = e.ketsoFlag || m.ketsoFlag;
-      e.wlctFlag = e.wlctFlag || m.wlctFlag;
-    } else unique.set(key, {...m});
-  });
-  matches=[...unique.values()];
-  const grouped={};daysOrder.forEach(d=>grouped[d]=[]);
-  matches.forEach(m=>grouped[m.sheet].push(m));
-  
-  // XÁC ĐỊNH NGÀY HIỆN TẠI
-  const now=new Date();
-  const vnWeekday=new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Bangkok',weekday:'long'}).format(now).toLowerCase();
-  const mapVN={'thứ hai':0,'thứ ba':1,'thứ tư':2,'thứ năm':3,'thứ sáu':4,'thứ bảy':5,'chủ nhật':6};
-  const todayIndex=mapVN[vnWeekday]??new Date().getDay()-1;
-
-  let html="";
-  daysOrder.forEach((day,idx)=>{
-    // NẾU CHỈ SỐ NGÀY LỚN HƠN NGÀY HIỆN TẠI THÌ DỪNG LẠI (CHỈ HIỆN ĐẾN THỨ HIỆN TẠI)
-    if (idx > todayIndex) return;
-
-    const rows=grouped[day];
-    const isPast=idx<todayIndex, isToday=idx===todayIndex;
-    html+=`<div class="day-container ${isPast?'day-past':''} ${isToday?'day-today':''}">
-      <div class="day-title">${day} ${isToday ? '(Hôm nay)' : ''}</div>`;
-    if(!rows.length){
-      html+=`<p class="text-gray-400 italic">Không có dữ liệu</p>`;
-    } else {
-      html+=`<table class="w-full result-table mt-1"><thead><tr>
-        <th>FLT</th><th>ETD</th><th>SUP</th><th>GATE</th><th>Kết sổ</th><th>WLC</th><th>Boarding</th></tr></thead><tbody>`;
-      rows.forEach(r=>{
-        let brd=r.tag==="BRD"?"✅":r.tag==="NO"?"❌":"";
-        html+=`<tr>
-          <td>${r.flt||'—'}</td>
-          <td>${r.etd||'—'}</td>
-          <td class="center">${r.supFlag?'✅':''}</td>
-          <td class="center">${r.gateFlag?'✅':''}</td>
-          <td class="center">${r.ketsoFlag?'✅':''}</td>
-          <td class="center">${r.wlctFlag?'✅':''}</td>
-          <td class="center">${brd}</td>
-        </tr>`;
-      });
-      html+=`</tbody></table>`;
-    }
-    html+=`</div>`;
-  });
-  container.innerHTML=html;
-  localStorage.setItem(SEARCH_STORAGE_KEY, nameRaw);
-}
-
-/* ========================================================
-   TÍNH NĂNG "LÀM HỘ" - CHECK AVAILABILITY RANGE
-   ======================================================== */
-const team7c = ["HẢI 9", "HUY 14", "DŨNG 12", "KHẢI 2", "HUY 12", "HẰNG 14", "HUYỀN 15", "LY 5", "THU 9", "LẬP 2"];
-const teamPR = ["NGHĨA 1", "TRÂM 3", "HOÀNG 10", "HUY 11", "THÚY 7", "ANH 10", "TUẤN 11", "LY 2", "SƠN 12", "KHÁNH 2"];
-const dayMap = {mon:0, tue:1, wed:2, thu:3, fri:4, sat:5, sun:6};
-const dayKeys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-
-function checkHelp(mode){
-    const startH = parseFloat(c('help-start-time').value);
-    const endH = parseFloat(c('help-end-time').value);
-    const startDay = c('help-start-day').value; 
-    const endDay = c('help-end-day').value; 
-    
-    const resultList = c('help-list');
-    const resultBox = c('help-result');
-
-    if(isNaN(startH) || isNaN(endH)){
-        showToast("Vui lòng nhập giờ đầy đủ!");
-        return;
-    }
-    if(!employeeData.length){
-        showToast("Chưa có dữ liệu. Vui lòng tải Excel trước.");
-        return;
-    }
-
-    const startIdx = dayMap[startDay];
-    const endIdx = dayMap[endDay];
-    
-    const absStart = startIdx * 24 + startH;
-    let absEnd = endIdx * 24 + endH;
-    
-    if(absEnd <= absStart){
-       showToast("Thời gian kết thúc phải sau thời gian bắt đầu (trong tuần)!");
-       return;
-    }
-
-    let targetList = [];
-    if (mode === 'ALL') {
-        targetList = employeeData; 
-    } else {
-        const use7c = c('chk-7c').checked;
-        const usePR = c('chk-pr').checked;
-        let filterNames = [];
-        if(use7c) filterNames = [...filterNames, ...team7c];
-        if(usePR) filterNames = [...filterNames, ...teamPR];
-        
-        if(filterNames.length === 0){
-            showToast("Chọn ít nhất 1 team hoặc tìm Tất cả!");
-            return;
-        }
-        targetList = employeeData.filter(e => {
-            const normName = normalizeText(e.name);
-            return filterNames.some(teamName => exactNameMatches(normalizeText(teamName), normName));
+function processAndUpload(data){
+  const wb = XLSX.read(data, {type:"array"});
+  let allEmp = [];
+  ["bảng chấm công qt","bảng chấm công nđ"].forEach(t => {
+    const sn = wb.SheetNames.find(n => n.trim().toLowerCase() === t);
+    if(sn){
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1});
+      rows.slice(1).forEach(row => {
+        if(row[1]) allEmp.push({
+            name: String(row[1]).trim(),
+            mon: (row[2]||"")+(row[4]?';'+row[4]:""), tue: (row[5]||"")+(row[7]?';'+row[7]:""),
+            wed: (row[8]||"")+(row[10]?';'+row[10]:""), thu: (row[11]||"")+(row[13]?';'+row[11]:""),
+            fri: (row[14]||"")+(row[16]?';'+row[16]:""), sat: (row[17]||"")+(row[19]?';'+row[19]:""),
+            sun: (row[20]||"")+(row[22]?';'+row[22]:"")
         });
+      });
+    }
+  });
+
+  let allFlt = [];
+  const namePattern = /([\p{L}Đđ\s\-]+?)\s+(\d{1,4})([^\n,;]*)/ug;
+  daysOrder.forEach(dName => {
+    const sn = wb.SheetNames.find(n => n.trim().toUpperCase() === dName);
+    if(!sn) return;
+    const sheet = wb.Sheets[sn];
+    let lastFlt="", lastEtd="", lastGate="";
+    for(let r=4; r<=46; r++){
+      const fVal=sheet['M'+r]?sheet['M'+r].v:null, eVal=sheet['N'+r]?sheet['N'+r].v:null, gVal=sheet['Q'+r]?sheet['Q'+r].v:null;
+      const flt=fVal?String(fVal).trim():lastFlt, etd=eVal!==null?excelTimeToHHMM(eVal):lastEtd, gate=gVal?String(gVal).trim():lastGate;
+      if(!flt) continue; lastFlt=flt; lastEtd=etd; lastGate=gate;
+      
+      let rowNotes = []; // Lưu các giá trị không phải tên trong hàng P-AF
+      for(let colIdx=15; colIdx<=31; colIdx++){
+        const cell = sheet[XLSX.utils.encode_col(colIdx)+r];
+        if(cell && cell.v){
+            const cellVal = String(cell.v).trim();
+            const matches = [...cellVal.matchAll(namePattern)];
+            if(matches.length > 0) {
+                matches.forEach(m => {
+                    const nOriginal = m[0].trim();
+                    const nBase = m[1].trim() + ' ' + m[2].trim();
+                    allFlt.push({
+                        sheet: dName, flt, etd, gate, 
+                        nameOnly: nOriginal,
+                        nameNormalized: normalizeText(nBase),
+                        task: (colIdx===15?'SUP':colIdx===16?'GATE':colIdx===17?'K.SỔ':colIdx===18?'WLC':''),
+                        row: r // Lưu lại hàng để sau này lọc group các note
+                    });
+                });
+            } else {
+                // Nếu cell có dữ liệu nhưng không phải format Tên + Số, coi là note/vị trí khác
+                rowNotes.push(cellVal);
+            }
+        }
+      }
+      // Gán notes vào các nhân viên cùng hàng
+      allFlt.filter(f => f.sheet === dName && f.flt === flt && f.etd === etd && f.row === r).forEach(f => {
+          f.notes = rowNotes;
+      });
+    }
+  });
+  
+  db.ref("hgs_weeks/" + pendingFileName).set({ employees: allEmp, flights: allFlt }).then(() => { 
+      showToast(`🚀 Đã tải lên: ${pendingFileName}`); 
+      c("excel-upload").value = ""; 
+  });
+}
+
+function removeDiacritics(str){ if(!str) return ""; return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g,'d').replace(/Đ/g,'D'); }
+function normalizeText(s){ if(!s) return ""; return removeDiacritics(s).replace(/[^A-Z0-9\s\-]/gi,'').trim().replace(/\s+/g,' ').toUpperCase(); }
+function excelTimeToHHMM(v){ if(typeof v==='number'){ const total=Math.round(v*24*60); return String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0'); } return String(v||"").trim(); }
+function timeToMinutes(t){ if(!t || !t.includes(':')) return 9999; const [h,m]=t.split(':').map(Number); return h*60+m; }
+
+const shifts={ HC:{start:7.5,end:15.5},A:{start:22,end:30},X:{start:14,end:22},S:{start:6,end:14} };
+function parseShift(str){
+    str=(str||"").toUpperCase().trim(); if(!str || str==="OFF" || str==="OM") return {start:0,end:0,dur:0};
+    const re_fixed=/^(\d*\.?\d*-?)?(H|DH|M)(\d*\.?\d*)?(-?\d*\.?\d*)?$/; const m_f = re_fixed.exec(str);
+    if(m_f){
+        let d=8, s=8; if(m_f[2]==="DH"||m_f[2]==="M") d=parseFloat(m_f[3])||0;
+        else if(m_f[2]==="H"){ if(m_f[3]) d=parseFloat(m_f[3]); if(/H4S/.test(str)) {s=8;d=4;} else if(/H4C/.test(str)){s=14;d=4;} }
+        let e=s+d; if(m_f[1]){ const v=parseFloat(m_f[1].replace("-","")); m_f[1].includes("-")?s+=v:s-=v; }
+        if(m_f[4]){ const v=parseFloat(m_f[4].replace("-","")); m_f[4].startsWith("-")?e-=v:e+=v; }
+        return {start:s, end:e, dur: e-s};
+    }
+    const re=/^(\d*\.?\d*-?)?([A-Z]{1,2})(-?\d*\.?\d*)?$/; const m=re.exec(str);
+    if(!m || !shifts[m[2]]) return {start:8, end:16, dur:8};
+    let {start,end}=shifts[m[2]]; if(m[1]){ const v=parseFloat(m[1].replace("-","")); m[1].includes("-")?start+=v:start-=v; }
+    if(m[3]){ const v=parseFloat(m[3].replace("-","")); m[3].startsWith("-")?end-=v:end+=v; }
+    return {start, end, dur: end-start};
+}
+function fmtHoursToHHMM(t){ const hh=Math.floor(t%24); const mm=Math.round((t%1)*60); return String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0"); }
+
+function createInputs(){
+    const box = c("days-container"); box.innerHTML = "";
+    days.forEach((d,i)=>{
+        const bgClass = i % 2 === 0 ? "day-even" : "day-odd";
+        box.innerHTML += `<div class="day-container ${bgClass}"><label class="block text-[10px] font-extrabold text-slate-400 uppercase mb-0.5">${d}</label><input id="day${i}" type="text" placeholder="Nhập ca..." enterkeyhint="next" class="w-full bg-transparent text-base font-bold text-slate-700 outline-none"></div>`;
+    });
+    const opts = days.map((d,i)=>`<option value="${daysOrder[i].toLowerCase()}">${d}</option>`).join("");
+    c('help-start-day').innerHTML = opts; c('help-end-day').innerHTML = opts;
+}
+
+function getShiftForEmployee(nameNorm, dayKey){
+    const emp = employeeData.find(e => normalizeText(e.name) === nameNorm);
+    if(!emp || !emp[dayKey.toLowerCase()]) return "OFF";
+    const parts = emp[dayKey.toLowerCase()].split(";").map(p=>{ const r = parseShift(p); return (r && r.dur>0) ? `${fmtHoursToHHMM(r.start)}-${fmtHoursToHHMM(r.end)}` : p; });
+    return parts.join(" | ");
+}
+
+function renderFlightResults(nameRaw){
+    const container=c("name-result-info"); const qNorm=normalizeText(nameRaw);
+    const allMyFlights = flightData.filter(f => f.nameNormalized === qNorm);
+    const uniqueMyFlights = []; const seenMyFltKeys = new Set();
+    allMyFlights.forEach(f => {
+        const key = `${f.sheet}-${f.flt}-${f.etd}`;
+        if(!seenMyFltKeys.has(key)){ uniqueMyFlights.push(f); seenMyFltKeys.add(key); }
+    });
+    if(!uniqueMyFlights.length){ container.innerHTML="<p class='text-slate-400 italic text-center p-2 text-sm'>Trống.</p>"; return; }
+    let html = "";
+    daysOrder.forEach(day => {
+        const df = uniqueMyFlights.filter(f => f.sheet === day).sort((a,b)=>timeToMinutes(a.etd)-timeToMinutes(b.etd));
+        if(!df.length) return;
+        html += `<div class="p-4 bg-white border border-slate-200 rounded-xl mb-3 shadow-sm"><div class="font-bold text-indigo-600 text-sm mb-3">📅 ${day}</div>`;
+        df.forEach((mf, idx) => {
+            const rawColleagues = flightData.filter(f => f.sheet===day && f.flt===mf.flt && f.etd===mf.etd);
+            const colleagues = []; const seenColNames = new Set();
+            rawColleagues.forEach(cl => { if(!seenColNames.has(cl.nameOnly)){ colleagues.push(cl); seenColNames.add(cl.nameOnly); } });
+            
+            // Lấy notes từ object đại diện (vì chung flight)
+            const flightNotes = mf.notes || [];
+
+            const accordionId = `acc-${day}-${idx}`;
+            html += `<div class="mb-4 last:mb-0 border-b last:border-0 pb-3" id="${accordionId}"><div class="flex items-center justify-between cursor-pointer" onclick="document.getElementById('${accordionId}').classList.toggle('details-open')"><div class="flex flex-wrap items-center gap-2"><span class="bg-indigo-600 text-white px-2 py-0.5 rounded text-[11px] font-bold uppercase">${mf.flt}</span><span class="text-sm font-bold text-slate-700">⏰ ${mf.etd}</span><span class="text-[10px] font-black text-rose-500 uppercase">Pos: ${mf.task || "..." }</span></div><span class="arrow-icon text-slate-400">▼</span></div><div class="details-content mt-3 overflow-hidden">`;
+            
+            if(flightNotes.length > 0) {
+                html += `<div class="mb-2 p-2 bg-amber-50 rounded border border-amber-100 text-[10px] font-bold text-amber-700 uppercase">📝 Ghi chú/Khác: ${flightNotes.join(", ")}</div>`;
+            }
+
+            html += `<table class="staff-sub-table w-full">`;
+            colleagues.forEach(col => { 
+                html += `<tr class="${col.nameNormalized===qNorm?'bg-indigo-50':''}"><td>${col.nameOnly}</td><td>${col.task}</td><td class="text-right font-mono font-bold">${getShiftForEmployee(col.nameNormalized, day)}</td></tr>`; 
+            });
+            html += `</table></div></div>`;
+        });
+        html += `</div>`;
+    });
+    container.innerHTML = html;
+}
+
+c("flight-select-dropdown").onchange = e => {
+    const val = e.target.value; if(!val) return;
+    const [sheet, flt, etd] = val.split('|').map(x=>x.trim());
+    const matches = flightData.filter(f => f.sheet === sheet && f.flt === flt && f.etd === etd);
+    const uniqueMatches = []; const seenN = new Set();
+    matches.forEach(m => { if(!seenN.has(m.nameOnly)){ uniqueMatches.push(m); seenN.add(m.nameOnly); } });
+    
+    // Lấy note từ hàng đầu tiên của chuyến bay này
+    const flightNotes = matches[0]?.notes || [];
+
+    let html = `<div class="p-4 bg-white border-2 border-indigo-200 rounded-xl">`;
+    if(flightNotes.length > 0) {
+        html += `<div class="mb-3 p-2 bg-amber-50 rounded border border-amber-100 text-[11px] font-black text-amber-700 uppercase italic">📌 Ghi chú chung: ${flightNotes.join(" • ")}</div>`;
+    }
+    html += `<table class="w-full staff-sub-table">`;
+    uniqueMatches.forEach(m => { 
+        html += `<tr><td class="font-bold text-sm">${m.nameOnly}</td><td class="text-indigo-600 font-bold text-sm">${m.task}</td><td class="text-right font-mono text-sm font-bold">${getShiftForEmployee(m.nameNormalized, sheet)}</td></tr>`; 
+    });
+    c("flight-detail-info").innerHTML = html + "</table></div>";
+};
+
+c("search-name").oninput = e => {
+    const q = normalizeText(e.target.value); const box = c("suggestions");
+    if(!q){ box.classList.add("hidden"); return; }
+    const uniqueNames = [...new Set(flightData.map(f=>f.nameOnly))].filter(n=>normalizeText(n).includes(q)).slice(0,10);
+    if(!uniqueNames.length){ box.classList.add("hidden"); return; }
+    box.innerHTML = uniqueNames.map(n=>`<div class="px-4 py-3 hover:bg-indigo-50 cursor-pointer font-bold text-slate-700 text-sm">${n}</div>`).join("");
+    box.classList.remove("hidden");
+    box.querySelectorAll("div").forEach(div=> div.onclick=()=>{ c("search-name").value=div.textContent; box.classList.add("hidden"); renderFlightResults(div.textContent); });
+};
+
+c("employee-select").onchange = e => {
+    const n = e.target.value; if(!n) return;
+    const emp = employeeData.find(x=>x.name===n);
+    daysOrder.forEach((d,i)=> c("day"+i).value = emp[d.toLowerCase()] || "");
+    c("search-name").value = n; 
+    renderFlightResults(n);
+    setTimeout(() => c("days-container").scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
+};
+
+c("calc-week").onclick = () => {
+    const tbody=c("result-body"); tbody.innerHTML=""; let total=0; let gayCount = 0;
+    days.forEach((d,i)=>{
+        const v=c("day"+i).value.trim(); if(!v) return;
+        const subShifts = v.split(";");
+        let validShifts = [];
+        subShifts.forEach(p => { const r = parseShift(p); if(r.dur > 0) validShifts.push({p, r}); });
+        if(validShifts.length > 1) gayCount++;
+        const rowBg = i % 2 === 0 ? "bg-white" : "bg-slate-50";
+        validShifts.forEach((item, idx) => {
+            tbody.innerHTML+=`<tr class="${rowBg} hover:bg-blue-50/50"><td class="font-bold py-3 px-4">${idx === 0 ? d : ""}</td><td><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[11px] font-bold">${item.p}</span></td><td class='text-center font-mono text-sm'>${fmtHoursToHHMM(item.r.start)}</td><td class='text-center font-mono text-sm'>${fmtHoursToHHMM(item.r.end)}</td><td class='text-center font-bold text-blue-600 text-sm'>${item.r.dur.toFixed(1)}h</td></tr>`;
+            total+=item.r.dur;
+        });
+    });
+    tbody.innerHTML+=`<tr class='bg-slate-800 text-white font-bold'><td colspan=4 class="py-3 px-4 text-xs uppercase">Tổng tuần</td><td class='text-center text-base py-3'>${total.toFixed(1)}h</td></tr>`;
+    if(gayCount >= 4) c("gay-doi-nguoi").classList.remove("hidden"); else c("gay-doi-nguoi").classList.add("hidden");
+    c("result-container").classList.remove("hidden"); c("result-container").scrollIntoView({ behavior: 'smooth' });
+};
+
+c("clear-week").onclick = () => { days.forEach((_,i)=>c("day"+i).value=""); c("result-container").classList.add("hidden"); };
+function showToast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2500); }
+
+c("btn-export-image").onclick = () => {
+    const target = c("result-container");
+    const btn = c("btn-export-image");
+    btn.style.display = "none";
+    
+    html2canvas(target, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Lich_Ca_Nhan_${c("employee-select").value || "HGS"}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        btn.style.display = "block";
+        showToast("✅ Đã tải ảnh lịch!");
+    });
+};
+
+function renderDropdown(type, query) {
+    const drop = c(`${type}-dropdown`);
+    const qNorm = normalizeText(query);
+    const selectedSet = (type === 'help' ? selectedHelpNames : selectedGoldenNames);
+    
+    const filtered = employeeData.filter(e => normalizeText(e.name).includes(qNorm));
+    
+    if (filtered.length === 0) {
+        drop.innerHTML = '<div class="p-4 text-center text-slate-400 text-xs">Không tìm thấy ai</div>';
+        return;
     }
 
-    let freeList = [];
+    drop.innerHTML = filtered.map(e => `
+        <div class="search-item" onclick="toggleSelection('${type}', '${e.name}')">
+            <input type="checkbox" ${selectedSet.has(e.name) ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelection('${type}', '${e.name}')">
+            <span>${e.name}</span>
+        </div>
+    `).join("");
+}
 
-    targetList.forEach(emp => {
-        let isBusy = false;
-        let reasons = [];
+function toggleSelection(type, name) {
+    const selectedSet = (type === 'help' ? selectedHelpNames : selectedGoldenNames);
+    if (selectedSet.has(name)) selectedSet.delete(name);
+    else selectedSet.add(name);
+    
+    c(`${type}-selection-summary`).textContent = `Đã chọn: ${selectedSet.size} người`;
+    renderDropdown(type, c(`${type}-search-input`).value);
+}
 
-        for(let d = startIdx; d <= endIdx; d++){
-            const dKey = dayKeys[d];
-            const shiftStr = emp[dKey];
-            
-            if(!shiftStr || shiftStr.toUpperCase() === "OFF" || shiftStr.toUpperCase() === "OM"){
-                continue;
-            }
-            
-            const parts = shiftStr.split(";").map(x=>x.trim()).filter(Boolean);
-            
-            for(let p of parts){
-                const s = parseShift(p);
-                if(s && !s.error && s.dur > 0){ 
-                    const shiftAbsStart = d * 24 + s.start;
-                    const shiftAbsEnd = d * 24 + s.end;
-                    const overlap = Math.max(absStart, shiftAbsStart) < Math.min(absEnd, shiftAbsEnd);
-                    if(overlap) {
-                        isBusy = true;
-                        break; 
-                    }
-                    reasons.push(`${dKey.toUpperCase()}:${p}`);
-                }
-            }
-            if(isBusy) break;
-        }
+['help', 'golden'].forEach(type => {
+    const input = c(`${type}-search-input`);
+    const drop = c(`${type}-dropdown`);
+    input.onfocus = () => { drop.classList.remove("hidden"); renderDropdown(type, input.value); };
+    input.oninput = (e) => renderDropdown(type, e.target.value);
+});
 
-        if(!isBusy){
-            const reasonStr = reasons.length ? reasons.join(", ") : "OFF/Trống";
-            freeList.push({name: emp.name, reason: reasonStr});
+document.addEventListener('click', (e) => {
+    ['help', 'golden'].forEach(type => {
+        if (!c(`${type}-search-input`).contains(e.target) && !c(`${type}-dropdown`).contains(e.target)) {
+            c(`${type}-dropdown`).classList.add("hidden");
         }
     });
-
-    freeList.sort((a,b) => a.name.localeCompare(b.name));
-
-    resultList.innerHTML = "";
-    if(freeList.length === 0){
-        resultList.innerHTML = "<li class='text-red-600 font-semibold'>Không có ai rảnh trong khoảng này!</li>";
-    } else {
-        resultList.innerHTML = `<li class='text-blue-600 font-bold mb-2'>Tìm thấy: ${freeList.length} người</li>`;
-        freeList.forEach(item => {
-            const li = document.createElement("li");
-            li.innerHTML = `<span class="font-bold text-gray-800">${item.name}</span> <span class="text-xs text-gray-500">(${item.reason})</span>`;
-            resultList.appendChild(li);
-        });
-    }
-    resultBox.classList.remove("hidden");
-}
-
-c("btn-find-all").addEventListener("click", () => checkHelp('ALL'));
-c("btn-find-k36").addEventListener("click", () => checkHelp('K36'));
-
-/* --- Wire events --- */
-c("search-name").addEventListener("input",e=>renderSuggestions(e.target.value||""));
-c("search-name").addEventListener("keydown",e=>{
-  if(e.key==="Enter"){e.preventDefault(); const val=e.target.value; if(val){ localStorage.setItem(SEARCH_STORAGE_KEY, val);} renderFlightResults(e.target.value);}
 });
 
-document.addEventListener("DOMContentLoaded",()=>{
-  createInputs();fillWeekSelect();loadLastExcelData();
-  const last=localStorage.getItem(SEARCH_STORAGE_KEY);
-  if(last){c("search-name").value=last;setTimeout(()=>renderFlightResults(last),500);}
-  c("save-week").onclick=saveWeek;
-  c("week-select").onchange=e=>{const v=e.target.value;if(v){c("week-name").value=v;loadWeek(v);} };
-  c("calc-week").onclick=calcWeek;
-  c("clear-week").onclick=deleteWeek;
-  c("clear-all").onclick=clearAll;
-});
+c("btn-find-help").onclick = () => {
+    const sH=parseFloat(c('help-start-time').value), eH=parseFloat(c('help-end-time').value);
+    const sD=c('help-start-day').value, eD=c('help-end-day').value;
+    if(isNaN(sH)||isNaN(eH)) return showToast("⚠️ Nhập giờ!");
+    if(selectedHelpNames.size === 0) return showToast("⚠️ Hãy chọn người muốn soi!");
+
+    const absS=dayMap[sD]*24+sH, absE=dayMap[eD]*24+eH;
+    let html = "";
+    
+    employeeData.filter(e => selectedHelpNames.has(e.name)).forEach(e => {
+        let isBusy = false; let busyShift = "";
+        for(let d=dayMap[sD]; d<=dayMap[eD]; d++){
+            (e[daysOrder[d].toLowerCase()]||"").split(";").forEach(p=>{ 
+                const r=parseShift(p); 
+                if(r.dur>0){ 
+                    if(Math.max(absS, d*24+r.start) < Math.min(absE, d*24+r.end)) { isBusy = true; busyShift = p; }
+                } 
+            });
+        }
+        if(!isBusy) html += `<li class="bg-emerald-50 text-emerald-800 p-2.5 rounded border border-emerald-100 flex justify-between"><span>🟢 ${e.name}</span> <span class="text-[10px] font-bold">RẢNH</span></li>`;
+        else html += `<li class="bg-rose-50 text-rose-800 p-2.5 rounded border border-rose-100 flex justify-between"><span>🔴 ${e.name}</span> <span class="text-[10px] font-bold">BẬN: ${busyShift}</span></li>`;
+    });
+    
+    c('help-list').innerHTML = html;
+    c('help-result').classList.remove("hidden");
+};
+
+c("btn-find-best-weekly").onclick = () => {
+    if (selectedGoldenNames.size === 0) return showToast("⚠️ Hãy chọn ít nhất 1 người!");
+    const targetData = employeeData.filter(e => selectedGoldenNames.has(e.name));
+    const windowSize = parseFloat(c("golden-hours-count").value) || 4;
+    const step = 0.5;
+    let finalWeeklyResults = [];
+
+    daysOrder.forEach((dayKey, dayIdx) => {
+        let bestSlot = { count: -1, start: 0, end: 0, names: [] };
+        for (let start = 6; start <= 30 - windowSize; start += step) {
+            let end = start + windowSize;
+            let freeNames = [];
+            targetData.forEach(emp => {
+                let busy = false;
+                (emp[dayKey.toLowerCase()] || "").split(";").forEach(p => {
+                    const r = parseShift(p);
+                    if (r.dur > 0 && Math.max(start, r.start) < Math.min(end, r.end)) busy = true;
+                });
+                if (!busy) freeNames.push(emp.name);
+            });
+            if (freeNames.length > bestSlot.count) {
+                bestSlot = { day: days[dayIdx], count: freeNames.length, start, end, names: freeNames };
+            }
+        }
+        finalWeeklyResults.push(bestSlot);
+    });
+
+    const resDiv = c("best-weekly-result");
+    resDiv.classList.remove("hidden");
+    resDiv.innerHTML = `<h4 class="font-bold text-slate-700 text-xs uppercase mb-3 text-center">⭐ Giờ Vàng Rảnh Nhất (${windowSize}h) ⭐</h4>`;
+    finalWeeklyResults.forEach(res => {
+        resDiv.innerHTML += `
+            <div class="p-3 bg-white rounded-xl border border-orange-200 shadow-sm mb-2">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="font-black text-slate-700 text-sm">${res.day}</span>
+                    <span class="bg-orange-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">${res.count}/${selectedGoldenNames.size} rảnh</span>
+                </div>
+                <div class="text-base font-extrabold text-orange-600">⏰ ${fmtHoursToHHMM(res.start)} - ${fmtHoursToHHMM(res.end)}</div>
+                <div class="text-[10px] text-slate-400 mt-1 italic leading-tight">${res.names.join(", ")}</div>
+            </div>`;
+    });
+    resDiv.scrollIntoView({ behavior: 'smooth' });
+};
+
+document.addEventListener("DOMContentLoaded",()=> createInputs());
 </script>
-
 </body>
 </html>
